@@ -5,7 +5,7 @@ import { logger, ConversationLog } from '@/lib/logger';
 import Link from 'next/link';
 
 // Пароль для админки (можно поменять)
-const ADMIN_PASSWORD = 'admin2024';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin2024';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
