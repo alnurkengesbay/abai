@@ -21,6 +21,7 @@ const ParticlesAvatar = dynamic(() => import('../components/ParticlesAvatar'), {
 export default function Home() {
   const vapiRef = useRef<Vapi | null>(null);
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
+  const [vapiInitError, setVapiInitError] = useState<string | null>(null);
   const [callActive, setCallActive] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [assistantSpeaking, setAssistantSpeaking] = useState(false);
@@ -77,8 +78,10 @@ export default function Home() {
     const key = process.env.NEXT_PUBLIC_VAPI_KEY;
     if (!key) {
       console.warn('Missing NEXT_PUBLIC_VAPI_KEY');
+      setVapiInitError('Missing NEXT_PUBLIC_VAPI_KEY');
       return;
     }
+    setVapiInitError(null);
     vapiRef.current = new Vapi(key);
     setVapiInstance(vapiRef.current);
 
@@ -149,7 +152,14 @@ export default function Home() {
 
   const startCall = async () => {
     const vapi = vapiRef.current;
-    if (!vapi) return;
+    if (!vapi) {
+      const msg = vapiInitError
+        ? `Vapi is not initialized: ${vapiInitError}`
+        : 'Vapi is not initialized. Check that NEXT_PUBLIC_VAPI_KEY is loaded.';
+      console.error(msg);
+      alert(msg);
+      return;
+    }
 
     setConnecting(true);
 
@@ -295,7 +305,7 @@ export default function Home() {
         {!callActive ? (
           <button
             onClick={startCall}
-            disabled={connecting}
+            disabled={connecting || Boolean(vapiInitError)}
             style={{
               pointerEvents: 'auto',
               padding: '1.5rem 3rem',
@@ -304,8 +314,8 @@ export default function Home() {
               color: 'white',
               textTransform: 'uppercase',
               letterSpacing: '0.2em',
-              cursor: connecting ? 'not-allowed' : 'pointer',
-              opacity: connecting ? 0.5 : 1,
+              cursor: (connecting || vapiInitError) ? 'not-allowed' : 'pointer',
+              opacity: (connecting || vapiInitError) ? 0.5 : 1,
               transition: 'all 0.3s'
             }}
           >
